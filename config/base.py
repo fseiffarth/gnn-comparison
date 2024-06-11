@@ -46,14 +46,28 @@ class Config:
     """
     datasets = {
         'NCI1': NCI1,
+        'NCI1Features': NCI1Features,
+        'NCI109': NCI109,
+        'NCI109Features': NCI109Features,
+        'Mutagenicity': Mutagenicity,
+        'MutagenicityFeatures': MutagenicityFeatures,
+        'DHFR': DHFR,
+        'DHFRFeatures': DHFRFeatures,
         'IMDB-BINARY': IMDBBinary,
+        'IMDB-BINARYFeatures': IMDBBinaryFeatures,
         'IMDB-MULTI': IMDBMulti,
+        'IMDB-MULTIFeatures': IMDBMultiFeatures,
         'COLLAB': Collab,
         'REDDIT-BINARY': RedditBinary,
         'REDDIT-MULTI-5K': Reddit5K,
         'PROTEINS': Proteins,
         'ENZYMES': Enzymes,
         'DD': DD,
+        'LongRings100': LongRings100,
+        'EvenOddRingsCount16': EvenOddRingsCount16,
+        'EvenOddRings2_16': EvenOddRings2_16,
+        'Snowflakes': Snowflakes,
+        'CSL': CSL,
     }
 
     models = {
@@ -63,7 +77,7 @@ class Config:
         "DGCNN": DGCNN,
         "MolecularFingerprint": MolecularFingerprint,
         "DeepMultisets": DeepMultisets,
-        "GraphSAGE": GraphSAGE
+        "GraphSAGE": GraphSAGE,
     }
 
     losses = {

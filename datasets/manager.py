@@ -18,8 +18,10 @@ import io
 import json
 import os
 import zipfile
+from collections import defaultdict
 from pathlib import Path
 
+import networkx as nx
 import numpy as np
 import requests
 import torch
@@ -227,6 +229,222 @@ class GraphDatasetManager:
         return train_loader, val_loader
 
 
+class BenchmarkDatasetManager(GraphDatasetManager):
+    classification = True
+
+    def _process(self):
+        # load from raw path
+        graphs, labels = self.load_graphs(self.raw_dir, self.name)
+
+        # create graphs_data a dict with keys:
+        # graph_nodes, graph_edges, node_labels, node_attrs, edge_labels, edge_attrs
+        graphs_data = {'graph_nodes': defaultdict(list), 'graph_edges': defaultdict(list),
+                       'node_labels': defaultdict(list), 'node_attrs': defaultdict(list),
+                       'edge_labels': defaultdict(list), 'edge_attrs': defaultdict(list)}
+        id_counter = 1
+        node_label_set = set()
+        edge_label_set = set()
+        for i, graph in enumerate(graphs, 1):
+            node_ids = [i + id_counter for i in range(graph.number_of_nodes())]
+            edge_ids = [[i + id_counter, j + id_counter] for i, j in graph.edges()]
+            node_labels = [0] * graph.number_of_nodes()
+            node_attrs = [None] * graph.number_of_nodes()
+            # get attr data from nodes
+            attrs_data = nx.get_node_attributes(graph, 'attr')
+            numpy_attrs_data = None
+            # if attrs_data is not empty, then convert to numpy array
+            if attrs_data:
+                numpy_attrs_data = np.array(list(attrs_data.values())).T
+                # normalize the by dividing by the maximum value per row
+                numpy_attrs_data = numpy_attrs_data / numpy_attrs_data.max(axis=1)[:, None]
+                # transpose the matrix back
+                numpy_attrs_data = numpy_attrs_data.T
+            for node in graph.nodes(data=True):
+                if type(node[1]['label']) == list:
+                    node_label = int(node[1]['label'][0])
+                elif type(node[1]['label']) == int:
+                    node_label = node[1]['label']
+                node_label_set.add(node_label)
+                node_labels[node[0]] = node_label
+                if numpy_attrs_data is not None:
+                    node_attrs[node[0]] = numpy_attrs_data[node[0]]
+            graphs_data['graph_nodes'][i] = node_ids
+            graphs_data['graph_edges'][i] = edge_ids
+            graphs_data['node_labels'][i] = node_labels
+            # check wheter there is at least entry in node_attrs that is not None
+            if node_attrs[0] is not None:
+                graphs_data['node_attrs'][i] = node_attrs
+            id_counter += graph.number_of_nodes()
+        # targets is a list of the labels (integer)
+        targets = labels
+
+        num_edge_labels = len(edge_label_set)
+        num_node_labels = len(node_label_set)
+
+        max_num_nodes = max([len(v) for (k, v) in graphs_data['graph_nodes'].items()])
+        setattr(self, 'max_num_nodes', max_num_nodes)
+
+        dataset = []
+        for i, target in enumerate(targets, 1):
+            graph_data = {k: v[i] for (k, v) in graphs_data.items()}
+            G = create_graph_from_tu_data(graph_data, target, num_node_labels, num_edge_labels)
+
+            if self.precompute_kron_indices:
+                laplacians, v_plus_list = self._precompute_kron_indices(G)
+                G.laplacians = laplacians
+                G.v_plus = v_plus_list
+
+            if G.number_of_nodes() > 1 and G.number_of_edges() > 0:
+                data = self._to_data(G)
+                dataset.append(data)
+
+        torch.save(dataset, self.processed_dir / f"{self.name}.pt")
+
+    def _to_data(self, G):
+        datadict = {}
+
+        node_features = G.get_x(self.use_node_attrs, self.use_node_degree, self.use_one)
+        datadict.update(x=node_features)
+
+        if G.laplacians is not None:
+            datadict.update(laplacians=G.laplacians)
+            datadict.update(v_plus=G.v_plus)
+
+        edge_index = G.get_edge_index()
+        datadict.update(edge_index=edge_index)
+
+        if G.has_edge_attrs:
+            edge_attr = G.get_edge_attr()
+            datadict.update(edge_attr=edge_attr)
+
+        target = G.get_target(classification=self.classification)
+        datadict.update(y=target)
+
+        data = Data(**datadict)
+
+        return data
+
+    def _precompute_kron_indices(self, G):
+        laplacians = []  # laplacian matrices (represented as 1D vectors)
+        v_plus_list = []  # reduction matrices
+
+        X = G.get_x(self.use_node_attrs, self.use_node_degree, self.use_one)
+        lap = torch.Tensor(normalized_laplacian_matrix(G).todense())  # I - D^{-1/2}AD^{-1/2}
+        # print(X.shape, lap.shape)
+
+        laplacians.append(lap)
+
+        for _ in range(self.KRON_REDUCTIONS):
+            if lap.shape[0] == 1:  # Can't reduce further:
+                v_plus, lap = torch.tensor([1]), torch.eye(1)
+                # print(lap.shape)
+            else:
+                v_plus, lap = self._vertex_decimation(lap)
+                # print(lap.shape)
+                # print(lap)
+
+            laplacians.append(lap.clone())
+            v_plus_list.append(v_plus.clone().long())
+
+        return laplacians, v_plus_list
+
+    # For the Perron–Frobenius theorem, if A is > 0 for all ij then the leading eigenvector is > 0
+    # A Laplacian matrix is symmetric (=> diagonalizable)
+    # and dominant eigenvalue (true in most cases? can we enforce it?)
+    # => we have sufficient conditions for power method to converge
+    def _power_iteration(self, A, num_simulations=30):
+        # Ideally choose a random vector
+        # To decrease the chance that our vector
+        # Is orthogonal to the eigenvector
+        b_k = torch.rand(A.shape[1]).unsqueeze(dim=1) * 0.5 - 1
+
+        for _ in range(num_simulations):
+            # calculate the matrix-by-vector product Ab
+            b_k1 = torch.mm(A, b_k)
+
+            # calculate the norm
+            b_k1_norm = torch.norm(b_k1)
+
+            # re normalize the vector
+            b_k = b_k1 / b_k1_norm
+
+        return b_k
+
+    def _vertex_decimation(self, L):
+
+        max_eigenvec = self._power_iteration(L)
+        v_plus, v_minus = (max_eigenvec >= 0).squeeze(), (max_eigenvec < 0).squeeze()
+
+        # print(v_plus, v_minus)
+
+        # diagonal matrix, swap v_minus with v_plus not to incur in errors (does not change the matrix)
+        if torch.sum(v_plus) == 0.:  # The matrix is diagonal, cannot reduce further
+            if torch.sum(v_minus) == 0.:
+                assert v_minus.shape[0] == L.shape[0], (v_minus.shape, L.shape)
+                # I assumed v_minus should have ones, but this is not necessarily the case. So I added this if
+                return torch.ones(v_minus.shape), L
+            else:
+                return v_minus, L
+
+        L_plus_plus = L[v_plus][:, v_plus]
+        L_plus_minus = L[v_plus][:, v_minus]
+        L_minus_minus = L[v_minus][:, v_minus]
+        L_minus_plus = L[v_minus][:, v_plus]
+
+        L_new = L_plus_plus - torch.mm(torch.mm(L_plus_minus, torch.inverse(L_minus_minus)), L_minus_plus)
+
+        return v_plus, L_new
+
+    def _precompute_assignments(self):
+        pass
+
+    @staticmethod
+    def load_graphs(path, db_name):
+        graphs = []
+        labels = []
+        # PosixPath to string
+        path = str(path)
+        with open(path + "/" + db_name + "_Nodes.txt", "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                data = line.strip().split(" ")
+                graph_id = int(data[0])
+                node_id = int(data[1])
+                label = int(data[2])
+                # the rest of the line is the node attributes#
+                node_attrs = list(map(float, data[3:]))
+                while len(graphs) <= graph_id:
+                    graphs.append(nx.Graph())
+                graphs[graph_id].add_node(node_id, label=label, attr=node_attrs)
+        with open(path + "/" + db_name + "_Edges.txt", "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                data = line.strip().split(" ")
+                graph_id = int(data[0])
+                node1 = int(data[1])
+                node2 = int(data[2])
+                if len(data) > 3:
+                    label = int(data[3])
+                    if len(data) > 4:
+                        # the rest of the line is the edge attributes
+                        edge_attrs = list(map(float, data[4:]))
+                        graphs[graph_id].add_edge(node1, node2, label=label, attr=edge_attrs)
+                    else:
+                        graphs[graph_id].add_edge(node1, node2, label=label)
+                else:
+                    graphs[graph_id].add_edge(node1, node2)
+        with open(path + "/" + db_name + "_Labels.txt", "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                data = line.strip().split(" ")
+                graph_id = int(data[0])
+                label = int(data[1])
+                while len(labels) <= graph_id:
+                    labels.append(label)
+                labels[graph_id] = label
+        return graphs, labels
+
+
 class TUDatasetManager(GraphDatasetManager):
     # URL = "https://ls11-www.cs.tu-dortmund.de/people/morris/graphkerneldatasets/{name}.zip"
     URL = "https://www.chrsmrrs.com/graphkerneldatasets/{name}.zip"
@@ -369,6 +587,50 @@ class NCI1(TUDatasetManager):
     _dim_target = 2
     max_num_nodes = 111
 
+class NCI1Features(BenchmarkDatasetManager):
+    name = "NCI1Features"
+    _dim_features = 39  # 2 attr + 37 labels
+    _dim_target = 2
+    max_num_nodes = 111
+
+class DHFR(TUDatasetManager):
+    name = "DHFR"
+    _dim_features = 53
+    _dim_target = 2
+    max_num_nodes = 71
+
+class DHFRFeatures(BenchmarkDatasetManager):
+    name = "DHFRFeatures"
+    _dim_features = 11  # 2 attr + 9 labels
+    _dim_target = 2
+    max_num_nodes = 71
+
+
+class Mutagenicity(TUDatasetManager):
+    name = "Mutagenicity"
+    _dim_features = 14
+    _dim_target = 2
+    max_num_nodes = 417
+
+class MutagenicityFeatures(BenchmarkDatasetManager):
+    name = "MutagenicityFeatures"
+    _dim_features = 16 # 2 attr + 14 labels
+    _dim_target = 2
+    max_num_nodes = 417
+
+
+class NCI109(TUDatasetManager):
+    name = "NCI109"
+    _dim_features = 38
+    _dim_target = 2
+    max_num_nodes = 111
+
+class NCI109Features(BenchmarkDatasetManager):
+    name = "NCI109Features"
+    _dim_features = 40  # 2 attr + 38 labels
+    _dim_target = 2
+    max_num_nodes = 111
+
 
 class RedditBinary(TUDatasetManager):
     name = "REDDIT-BINARY"
@@ -411,10 +673,22 @@ class IMDBBinary(TUDatasetManager):
     _dim_target = 2
     max_num_nodes = 136
 
+class IMDBBinaryFeatures(BenchmarkDatasetManager):
+    name = "IMDB-BINARYFeatures"
+    _dim_features = 4  # 3 attr + 1 label
+    _dim_target = 2
+    max_num_nodes = 136
+
 
 class IMDBMulti(TUDatasetManager):
     name = "IMDB-MULTI"
     _dim_features = 1
+    _dim_target = 3
+    max_num_nodes = 89
+
+class IMDBMultiFeatures(BenchmarkDatasetManager):
+    name = "IMDB-MULTIFeatures"
+    _dim_features = 4  # 2 attr + 1 label
     _dim_target = 3
     max_num_nodes = 89
 
@@ -424,3 +698,56 @@ class Collab(TUDatasetManager):
     _dim_features = 1
     _dim_target = 3
     max_num_nodes = 492
+
+
+class LongRings100(BenchmarkDatasetManager):
+    name = "LongRings100"
+    _dim_features = 5
+    _dim_target = 3
+    max_num_nodes = 100
+
+
+class LongRings8(BenchmarkDatasetManager):
+    name = "LongRings8"
+    _dim_features = 5
+    _dim_target = 3
+    max_num_nodes = 8
+
+
+class LongRings16(BenchmarkDatasetManager):
+    name = "LongRings16"
+    _dim_features = 5
+    _dim_target = 3
+    max_num_nodes = 16
+
+
+class EvenOddRingsCount16(BenchmarkDatasetManager):
+    name = "EvenOddRingsCount16"
+    _dim_features = 16
+    _dim_target = 2
+    max_num_nodes = 16
+
+
+class EvenOddRings2_16(BenchmarkDatasetManager):
+    name = "EvenOddRings2_16"
+    _dim_features = 16
+    _dim_target = 4
+    max_num_nodes = 16
+class EvenOddRings2_16(BenchmarkDatasetManager):
+    name = "EvenOddRings2_16"
+    _dim_features = 16
+    _dim_target = 4
+    max_num_nodes = 16
+
+class Snowflakes(BenchmarkDatasetManager):
+    name = "Snowflakes"
+    _dim_features = 2
+    _dim_target = 4
+    max_num_nodes = 180
+
+
+class CSL(BenchmarkDatasetManager):
+    name = "CSL"
+    _dim_features = 1
+    _dim_target = 10
+    max_num_nodes = 41

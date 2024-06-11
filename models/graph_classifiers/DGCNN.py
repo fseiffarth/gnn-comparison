@@ -30,14 +30,31 @@ class DGCNN(nn.Module):
         super(DGCNN, self).__init__()
 
         self.ks = {'NCI1': { '0.6': 30, '0.9': 46 },
+                   'NCI1Features': { '0.6': 30, '0.9': 46 },
+                   'DHFR': { '0.6': 44, '0.9': 54 },
+                     'DHFRFeatures': { '0.6': 44, '0.9': 54 },
+                   'Mutagenicity': { '0.6': 30, '0.9': 48 },
+                   'MutagenicityFeatures': { '0.6': 30, '0.9': 48 },
+                   'SYNTHETICnew': { '0.6': 100, '0.9': 100 },
+                   'CSL' : { '0.6': 41, '0.9': 41 },
+                   'NCI109': { '0.6': 29, '0.9': 46 },
+                   'NCI109Features': { '0.6': 29, '0.9': 46 },
                    'PROTEINS_full': { '0.6': 32, '0.9': 81 },
                    'DD': {'0.6': 291, '0.9': 503 },
                    'ENZYMES': { '0.6': 36, '0.9': 48 },
                    'IMDB-BINARY': { '0.6': 18, '0.9': 31 },
+                   'IMDB-BINARYFeatures': { '0.6': 18, '0.9': 31 },
                    'IMDB-MULTI': { '0.6': 11, '0.9': 22 },
+                     'IMDB-MULTIFeatures': { '0.6': 11, '0.9': 22 },
                    'REDDIT-BINARY': { '0.6': 370, '0.9': 1002 },
                    'REDDIT-MULTI-5K': { '0.6': 469, '0.9': 1081 },
                    'COLLAB': { '0.6': 61, '0.9': 130 },
+                   'LongRings100': { '0.6': 100, '0.9': 100 },
+                   'LongRings8': {'0.6': 8, '0.9': 8},
+                   'LongRings16': {'0.6': 16, '0.9': 16},
+                   'EvenOddRingsCount16': {'0.6': 16, '0.9': 16},
+                     'EvenOddRings2_16': {'0.6': 16, '0.9': 16},
+                   'Snowflakes': {'0.6': 135, '0.9': 180},
                    }
 
         self.k = self.ks[config.dataset.name][str(config['k'])]

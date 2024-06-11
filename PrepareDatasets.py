@@ -23,11 +23,28 @@ DATASETS = {
     'REDDIT-MULTI-5K': Reddit5K,
     'COLLAB': Collab,
     'IMDB-BINARY': IMDBBinary,
+    'IMDB-BINARYFeatures': IMDBBinaryFeatures,
     'IMDB-MULTI': IMDBMulti,
+    'IMDB-MULTIFeatures': IMDBMultiFeatures,
     'NCI1': NCI1,
+    'NCI1Features': NCI1Features,
     'ENZYMES': Enzymes,
     'PROTEINS': Proteins,
-    'DD': DD
+    'DD': DD,
+    'DHFR': DHFR,
+    'DHFRFeatures': DHFRFeatures,
+    'Mutagenicity': Mutagenicity,
+    'MutagenicityFeatures': MutagenicityFeatures,
+    'NCI109': NCI109,
+    'NCI109Features': NCI109Features,
+    'IMDB-BINARYFeatures': IMDBBinaryFeatures,
+    'IMDB-MULTIFeatures': IMDBMultiFeatures,
+    'NCI1Features': NCI1Features,
+    'DHFRFeatures': DHFRFeatures,
+    'MutagenicityFeatures': MutagenicityFeatures,
+    'NCI109Features': NCI109Features,
+    'Snowflakes': Snowflakes,
+    'CSL': CSL,
 }
 
 
@@ -56,6 +73,10 @@ def preprocess_dataset(name, args_dict):
     dataset_class = DATASETS[name]
     if name == 'ENZYMES':
         args_dict.update(use_node_attrs=True)
+    if 'Features' in name:
+        args_dict.update(use_node_attrs=True)
+    if name == 'CSL':
+        args_dict.update(outer_k=5)
     dataset_class(**args_dict)
 
 
