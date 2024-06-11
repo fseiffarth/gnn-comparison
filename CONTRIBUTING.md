@@ -74,7 +74,7 @@ New datasets need to be in the file format described below in steps 2 and 3.
     "NAME": NAME,
    }
    ```
-   in [config/base.py](../config/base.py) 
+   in [config/base.py](config/base.py) 
 6. Add NAME to the list of datasets in [datasets/__init__.py](datasets/__init__.py)
 7. In case you want to use the dataset for DGCNN, you need to manipulate the dictionary
    ```python
