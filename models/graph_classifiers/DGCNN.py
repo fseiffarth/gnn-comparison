@@ -54,9 +54,9 @@ class DGCNN(nn.Module):
                    'LongRings8': {'0.6': 8, '0.9': 8},
                    'LongRings16': {'0.6': 16, '0.9': 16},
                    'EvenOddRingsCount16': {'0.6': 16, '0.9': 16},
-                     'EvenOddRings2_16': {'0.6': 16, '0.9': 16},
-                   'Snowflakes': {'0.6': 135, '0.9': 180},
-                     'SnowflakesFeatures': {'0.6': 135, '0.9': 180},
+                    'EvenOddRings2_16': {'0.6': 16, '0.9': 16},
+                    'Snowflakes': {'0.6': 135, '0.9': 180},
+                    'SnowflakesFeatures': {'0.6': 135, '0.9': 180},
                    }
 
         self.k = self.ks[config.dataset.name][str(config['k'])]

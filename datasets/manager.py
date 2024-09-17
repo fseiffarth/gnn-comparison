@@ -745,6 +745,7 @@ class Snowflakes(BenchmarkDatasetManager):
     _dim_features = 2
     _dim_target = 4
     max_num_nodes = 180
+
 class SnowflakesFeatures(BenchmarkDatasetManager):
     name = "SnowflakesFeatures"
     _dim_features = 4
