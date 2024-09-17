@@ -37,6 +37,7 @@ class DGCNN(nn.Module):
                    'MutagenicityFeatures': { '0.6': 30, '0.9': 48 },
                    'SYNTHETICnew': { '0.6': 100, '0.9': 100 },
                    'CSL' : { '0.6': 41, '0.9': 41 },
+                   'CSLFeatures' : { '0.6': 41, '0.9': 41 },
                    'NCI109': { '0.6': 29, '0.9': 46 },
                    'NCI109Features': { '0.6': 29, '0.9': 46 },
                    'PROTEINS_full': { '0.6': 32, '0.9': 81 },

@@ -49,7 +49,7 @@ New datasets need to be in the file format described below in steps 2 and 3.
 2. In the `raw` folder, add the following files:
     - `NAME_Edges.txt` containing the edges of the graph in the format `graph_id, source, target, edge_label`
     - `NAME_Nodes.txt` containing the nodes of the graph in the format `graph_id, node_id, node_label_1, node_label_2, ...`
-    - `NAME_Labels.txt` containing the graph labels in the format `graph_id, graph_label`
+    - `NAME_Labels.txt` containing the graph labels in the format `graph_dataset_name graph_id, graph_label`
 3. In the `processed` folder, add the file `NAME_splits.json` containing the splits of the dataset in the format:
     ```json
    [{
@@ -58,15 +58,15 @@ New datasets need to be in the file format described below in steps 2 and 3.
     
    },...]
     ```
-4. Add the dataset as class in the `manager.py` file using the following scheme replacing `NAME` with the name of the dataset:
-   ```python
-   class NAME(BenchmarkDatasetManager):
-    name = "NAME"
-    _dim_features = 1
-    _dim_target = 10
-    max_num_nodes = 41
-   ```
-   _dim_features is the number of features per node, _dim_target is the number of classes, and max_num_nodes is the maximum number of nodes in the dataset.
+4. Add the dataset as class in the [datasets/manager.py](datasets/manager.py) file using the following scheme replacing `NAME` with the name of the dataset:
+```python
+         class NAME(BenchmarkDatasetManager):
+          name = "NAME"
+          _dim_features = 1
+          _dim_target = 10
+          max_num_nodes = 41
+```
+_dim_features is the number of features per node, _dim_target is the number of classes, and max_num_nodes is the maximum number of nodes in the dataset.
 5. Add the dataset to the dictionary 
    ```python
    datasets = {
@@ -95,7 +95,7 @@ New datasets need to be in the file format described below in steps 2 and 3.
    in [PrepareDatasets.py](PrepareDatasets.py).
 9. Preprocess the dataset NAME by running the following command:
    ```bash
-   python PrepareDataset.py DATA --dataset_name NAME --outer-k 10
+   python PrepareDataset.py DATA --dataset-name NAME --outer-k 10
    ```
 10. Run the experiments with the new dataset using the following commands:
     ```bash

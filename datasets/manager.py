@@ -437,8 +437,8 @@ class BenchmarkDatasetManager(GraphDatasetManager):
             lines = f.readlines()
             for line in lines:
                 data = line.strip().split(" ")
-                graph_id = int(data[0])
-                label = int(data[1])
+                graph_id = int(data[1])
+                label = int(data[2])
                 while len(labels) <= graph_id:
                     labels.append(label)
                 labels[graph_id] = label
@@ -733,6 +733,7 @@ class EvenOddRings2_16(BenchmarkDatasetManager):
     _dim_features = 16
     _dim_target = 4
     max_num_nodes = 16
+
 class EvenOddRings2_16(BenchmarkDatasetManager):
     name = "EvenOddRings2_16"
     _dim_features = 16
@@ -749,5 +750,11 @@ class Snowflakes(BenchmarkDatasetManager):
 class CSL(BenchmarkDatasetManager):
     name = "CSL"
     _dim_features = 1
+    _dim_target = 10
+    max_num_nodes = 41
+
+class CSLFeatures(BenchmarkDatasetManager):
+    name = "CSLFeatures"
+    _dim_features = 2
     _dim_target = 10
     max_num_nodes = 41

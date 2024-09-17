@@ -45,6 +45,7 @@ DATASETS = {
     'NCI109Features': NCI109Features,
     'Snowflakes': Snowflakes,
     'CSL': CSL,
+    'CSLFeatures': CSLFeatures,
 }
 
 

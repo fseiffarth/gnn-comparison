@@ -68,6 +68,7 @@ class Config:
         'EvenOddRings2_16': EvenOddRings2_16,
         'Snowflakes': Snowflakes,
         'CSL': CSL,
+        'CSLFeatures': CSLFeatures,
     }
 
     models = {
