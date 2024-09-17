@@ -67,6 +67,7 @@ class Config:
         'EvenOddRingsCount16': EvenOddRingsCount16,
         'EvenOddRings2_16': EvenOddRings2_16,
         'Snowflakes': Snowflakes,
+        'SnowflakesFeatures': SnowflakesFeatures,
         'CSL': CSL,
         'CSLFeatures': CSLFeatures,
     }

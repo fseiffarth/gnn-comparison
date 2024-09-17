@@ -44,6 +44,7 @@ DATASETS = {
     'MutagenicityFeatures': MutagenicityFeatures,
     'NCI109Features': NCI109Features,
     'Snowflakes': Snowflakes,
+    'SnowflakesFeatures': SnowflakesFeatures,
     'CSL': CSL,
     'CSLFeatures': CSLFeatures,
 }
