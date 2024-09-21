@@ -43,6 +43,11 @@ if __name__ == "__main__":
     args = get_args()
     # export OMP_NUM_THREADS=1
     torch.set_num_threads(1)
+    config_files = [args.config_file]
+    if args.config_file == 'all':
+        config_files = ['config_DGCNN.yml', 'config_GIN.yml', 'config_GraphSAGE.yml']
+    if args.config_file == 'GINSAGE':
+        config_files = ['config_GIN.yml', 'config_GraphSAGE.yml']
 
     if args.dataset_name != 'none':
         datasets = [args.dataset_name]
@@ -69,12 +74,13 @@ if __name__ == "__main__":
     config_file = args.config_file
     experiment = args.experiment
 
-    for dataset_name in datasets:
-        try:
-            endtoend(config_file, dataset_name,
-                     outer_k=int(args.outer_folds), outer_processes=int(args.outer_processes),
-                     inner_k=int(args.inner_folds), inner_processes=int(args.inner_processes),
-                     result_folder=args.result_folder, debug=args.debug)
-        
-        except Exception as e:
-            raise e  # print(e)
+    for config_file in config_files:
+        for dataset_name in datasets:
+            try:
+                endtoend(config_file, dataset_name,
+                         outer_k=int(args.outer_folds), outer_processes=int(args.outer_processes),
+                         inner_k=int(args.inner_folds), inner_processes=int(args.inner_processes),
+                         result_folder=args.result_folder, debug=args.debug)
+
+            except Exception as e:
+                raise e  # print(e)
