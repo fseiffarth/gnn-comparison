@@ -57,6 +57,8 @@ if __name__ == "__main__":
         datasets = ['DHFRFeatures', 'IMDB-BINARYFeatures', 'IMDB-MULTIFeatures', 'MutagenicityFeatures', 'NCI1Features', 'NCI109Features']
     if args.dataset_name == 'synthetic':
         datasets = ['Snowflakes', 'EvenOddRingsCount16', 'EvenOddRings2_16',  'LongRings100']
+    if args.dataset_name == 'synthetic_features':
+        datasets = ['CSLFeatures', 'SnowflakesFeatures']
     if args.dataset_name == 'CSL':
         datasets = ['CSL']
         # set outer folds to 5
