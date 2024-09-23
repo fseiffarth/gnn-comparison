@@ -55,6 +55,8 @@ if __name__ == "__main__":
         datasets = ['Mutagenicity', 'NCI109', 'DHFR', 'NCI1', 'IMDB-BINARY', 'IMDB-MULTI']
     if args.dataset_name == 'features':
         datasets = ['DHFRFeatures', 'IMDB-BINARYFeatures', 'IMDB-MULTIFeatures', 'MutagenicityFeatures', 'NCI1Features', 'NCI109Features']
+    if args.dataset_name == 'all_experiments':
+        datasets = ['Mutagenicity', 'NCI109', 'DHFR', 'NCI1', 'IMDB-BINARY', 'IMDB-MULTI', 'DHFRFeatures', 'IMDB-BINARYFeatures', 'IMDB-MULTIFeatures', 'MutagenicityFeatures', 'NCI1Features', 'NCI109Features']
     if args.dataset_name == 'synthetic':
         datasets = ['Snowflakes', 'EvenOddRingsCount16', 'EvenOddRings2_16',  'LongRings100']
     if args.dataset_name == 'synthetic_features':
