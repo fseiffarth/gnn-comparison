@@ -22,15 +22,34 @@ DATASETS = {
     'REDDIT-BINARY': RedditBinary,
     'REDDIT-MULTI-5K': Reddit5K,
     'COLLAB': Collab,
+    'ENZYMES': Enzymes,
+    'PROTEINS': Proteins,
+    'DD': DD,
     'IMDB-BINARY': IMDBBinary,
     'IMDB-BINARYFeatures': IMDBBinaryFeatures,
     'IMDB-MULTI': IMDBMulti,
     'IMDB-MULTIFeatures': IMDBMultiFeatures,
     'NCI1': NCI1,
     'NCI1Features': NCI1Features,
-    'ENZYMES': Enzymes,
-    'PROTEINS': Proteins,
-    'DD': DD,
+    'DHFR': DHFR,
+    'DHFRFeatures': DHFRFeatures,
+    'Mutagenicity': Mutagenicity,
+    'MutagenicityFeatures': MutagenicityFeatures,
+    'NCI109': NCI109,
+    'NCI109Features': NCI109Features,
+    'Snowflakes': Snowflakes,
+    'SnowflakesFeatures': SnowflakesFeatures,
+    'CSL': CSL,
+    'CSLFeatures': CSLFeatures,
+}
+
+EXPERIMENT_DATASETS = {
+    'IMDB-BINARY': IMDBBinary,
+    'IMDB-BINARYFeatures': IMDBBinaryFeatures,
+    'IMDB-MULTI': IMDBMulti,
+    'IMDB-MULTIFeatures': IMDBMultiFeatures,
+    'NCI1': NCI1,
+    'NCI1Features': NCI1Features,
     'DHFR': DHFR,
     'DHFRFeatures': DHFRFeatures,
     'Mutagenicity': Mutagenicity,
@@ -50,7 +69,7 @@ def get_args_dict():
     parser.add_argument('DATA_DIR',
                         help='where to save the datasets')
     parser.add_argument('--dataset-name', dest='dataset_name',
-                        choices=DATASETS.keys(), default='all', help='dataset name [Default: \'all\']')
+                        choices=EXPERIMENT_DATASETS.keys(), default='all', help='dataset name [Default: \'all\']')
     parser.add_argument('--outer-k', dest='outer_k', type=int,
                         default=10, help='evaluation folds [Default: 10]')
     parser.add_argument('--inner-k', dest='inner_k', type=int,
@@ -66,7 +85,7 @@ def get_args_dict():
 
 
 def preprocess_dataset(name, args_dict):
-    dataset_class = DATASETS[name]
+    dataset_class = EXPERIMENT_DATASETS[name]
     if name == 'ENZYMES':
         args_dict.update(use_node_attrs=True)
     if 'Features' in name:
@@ -83,7 +102,9 @@ if __name__ == "__main__":
 
     dataset_name = args_dict.pop('dataset_name')
     if dataset_name == 'all':
-        for name in DATASETS:
+        for name in EXPERIMENT_DATASETS:
+            print(f'Preprocessing {name}...')
             preprocess_dataset(name, args_dict)
     else:
+        print(f'Preprocessing {dataset_name}...')
         preprocess_dataset(dataset_name, args_dict)

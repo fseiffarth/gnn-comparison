@@ -261,9 +261,9 @@ class BenchmarkDatasetManager(GraphDatasetManager):
                 numpy_attrs_data = numpy_attrs_data.T
             for node in graph.nodes(data=True):
                 if type(node[1]['label']) == list:
-                    node_label = int(node[1]['label'][0])
+                    node_label = int(node[1]['label'][0]) + 1
                 elif type(node[1]['label']) == int:
-                    node_label = node[1]['label']
+                    node_label = node[1]['label'] + 1
                 node_label_set.add(node_label)
                 node_labels[node[0]] = node_label
                 if numpy_attrs_data is not None:
@@ -271,7 +271,7 @@ class BenchmarkDatasetManager(GraphDatasetManager):
             graphs_data['graph_nodes'][i] = node_ids
             graphs_data['graph_edges'][i] = edge_ids
             graphs_data['node_labels'][i] = node_labels
-            # check wheter there is at least entry in node_attrs that is not None
+            # check whether there is at least entry in node_attrs that is not None
             if node_attrs[0] is not None:
                 graphs_data['node_attrs'][i] = node_attrs
             id_counter += graph.number_of_nodes()
@@ -581,7 +581,7 @@ class TUDatasetManager(GraphDatasetManager):
         pass
 
 
-class NCI1(TUDatasetManager):
+class NCI1(BenchmarkDatasetManager):
     name = "NCI1"
     _dim_features = 37
     _dim_target = 2
@@ -589,13 +589,13 @@ class NCI1(TUDatasetManager):
 
 class NCI1Features(BenchmarkDatasetManager):
     name = "NCI1Features"
-    _dim_features = 39  # 2 attr + 37 labels
+    _dim_features = 38  # 2 attr + 37 labels
     _dim_target = 2
     max_num_nodes = 111
 
-class DHFR(TUDatasetManager):
+class DHFR(BenchmarkDatasetManager):
     name = "DHFR"
-    _dim_features = 53
+    _dim_features = 9
     _dim_target = 2
     max_num_nodes = 71
 
@@ -606,7 +606,7 @@ class DHFRFeatures(BenchmarkDatasetManager):
     max_num_nodes = 71
 
 
-class Mutagenicity(TUDatasetManager):
+class Mutagenicity(BenchmarkDatasetManager):
     name = "Mutagenicity"
     _dim_features = 14
     _dim_target = 2
@@ -619,7 +619,7 @@ class MutagenicityFeatures(BenchmarkDatasetManager):
     max_num_nodes = 417
 
 
-class NCI109(TUDatasetManager):
+class NCI109(BenchmarkDatasetManager):
     name = "NCI109"
     _dim_features = 38
     _dim_target = 2
@@ -627,7 +627,7 @@ class NCI109(TUDatasetManager):
 
 class NCI109Features(BenchmarkDatasetManager):
     name = "NCI109Features"
-    _dim_features = 40  # 2 attr + 38 labels
+    _dim_features = 39  # 2 attr + 38 labels
     _dim_target = 2
     max_num_nodes = 111
 
@@ -667,7 +667,7 @@ class Enzymes(TUDatasetManager):
     max_num_nodes = 126
 
 
-class IMDBBinary(TUDatasetManager):
+class IMDBBinary(BenchmarkDatasetManager):
     name = "IMDB-BINARY"
     _dim_features = 1
     _dim_target = 2
@@ -675,12 +675,12 @@ class IMDBBinary(TUDatasetManager):
 
 class IMDBBinaryFeatures(BenchmarkDatasetManager):
     name = "IMDB-BINARYFeatures"
-    _dim_features = 4  # 3 attr + 1 label
+    _dim_features = 3  # 2 attr + 1 label
     _dim_target = 2
     max_num_nodes = 136
 
 
-class IMDBMulti(TUDatasetManager):
+class IMDBMulti(BenchmarkDatasetManager):
     name = "IMDB-MULTI"
     _dim_features = 1
     _dim_target = 3
@@ -688,7 +688,7 @@ class IMDBMulti(TUDatasetManager):
 
 class IMDBMultiFeatures(BenchmarkDatasetManager):
     name = "IMDB-MULTIFeatures"
-    _dim_features = 4  # 2 attr + 1 label
+    _dim_features = 3  # 2 attr + 1 label
     _dim_target = 3
     max_num_nodes = 89
 

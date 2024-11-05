@@ -154,7 +154,7 @@ def create_graph_from_tu_data(graph_data, target, num_node_labels, num_edge_labe
         label, attrs = None, None
 
         if graph_data["edge_labels"] != []:
-            label = one_hot(graph_data["edge_labels"][i], num_edge_labels)
+            label = one_hot(graph_data["edge_labels"][i]+1, num_edge_labels)
         if graph_data["edge_attrs"] != []:
             attrs = graph_data["edge_attrs"][i]
 
