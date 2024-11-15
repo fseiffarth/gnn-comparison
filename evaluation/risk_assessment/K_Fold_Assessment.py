@@ -18,6 +18,7 @@ import concurrent.futures
 import json
 import os
 
+import joblib
 import numpy as np
 
 from evaluation.dataset_getter import DatasetGetter
@@ -73,35 +74,19 @@ class KFoldAssessment:
         with open(os.path.join(self.__NESTED_FOLDER, self._ASSESSMENT_FILENAME), 'w') as fp:
             json.dump(assessment_results, fp)
 
-    def risk_assessment(self, experiment_class, debug=False, other=None):
-        """
-        :param experiment_class: the kind of experiment used
-        :param debug:
-        :param other: anything you want to share across processes
-        :return: An average over the outer test folds. RETURNS AN ESTIMATE, NOT A MODEL!!!
-        """
-        if not os.path.exists(self.__NESTED_FOLDER):
-            os.makedirs(self.__NESTED_FOLDER)
+    def parallel_process_risk_assesment_helper(self, experiment_class, outer_k, debug=False, other=None):
+        # Create a separate folder for each experiment
+        kfold_folder = os.path.join(self.__NESTED_FOLDER, self.__OUTER_FOLD_BASE + str(outer_k + 1))
+        if not os.path.exists(kfold_folder):
+            os.makedirs(kfold_folder)
 
-        pool = concurrent.futures.ProcessPoolExecutor(max_workers=self.outer_processes)
-        for outer_k in range(self.outer_folds):
-
-            # Create a separate folder for each experiment
-            kfold_folder = os.path.join(self.__NESTED_FOLDER, self.__OUTER_FOLD_BASE + str(outer_k + 1))
-            if not os.path.exists(kfold_folder):
-                os.makedirs(kfold_folder)
-            
-            json_outer_results = os.path.join(kfold_folder, self._OUTER_RESULTS_FILENAME)
-            if not os.path.exists(json_outer_results):
-                if not debug:
-                    pool.submit(self._risk_assessment_helper, outer_k,
-                                experiment_class, kfold_folder, debug, other)
-                else:  # DEBUG
-                    self._risk_assessment_helper(outer_k, experiment_class, kfold_folder, debug, other)
-            else:
-                # Do not recompute experiments for this outer fold.
-                print(f"File {json_outer_results} already present! Shutting down to prevent loss of previous experiments")
-                continue
+        json_outer_results = os.path.join(kfold_folder, self._OUTER_RESULTS_FILENAME)
+        if not os.path.exists(json_outer_results):
+            self._risk_assessment_helper(outer_k, experiment_class, kfold_folder, debug, other)
+        else:
+            # Do not recompute experiments for this outer fold.
+            print(
+                f"File {json_outer_results} already present! Shutting down to prevent loss of previous experiments")
 
             # Create a separate folder for each experiment
             # kfold_folder = os.path.join(self.__NESTED_FOLDER, self.__OUTER_FOLD_BASE + str(outer_k + 1))
@@ -112,7 +97,25 @@ class KFoldAssessment:
             #     print(f"Outer folder {outer_k} already present! Shutting down to prevent loss of previous experiments")
             #     continue
 
-        pool.shutdown()  # wait the batch of configs to terminate
+    def risk_assessment(self, experiment_class, debug=False, other=None):
+        """
+        :param experiment_class: the kind of experiment used
+        :param debug:
+        :param other: anything you want to share across processes
+        :return: An average over the outer test folds. RETURNS AN ESTIMATE, NOT A MODEL!!!
+        """
+        if not os.path.exists(self.__NESTED_FOLDER):
+            os.makedirs(self.__NESTED_FOLDER)
+
+        #pool = concurrent.futures.ProcessPoolExecutor(max_workers=self.outer_processes)
+
+        # use joblib to parallelize the outer folds
+        joblib.Parallel(n_jobs=self.outer_processes)(
+            joblib.delayed(self.parallel_process_risk_assesment_helper)(experiment_class, outer_k, debug, other) for outer_k in range(self.outer_folds))
+
+
+
+        #pool.shutdown()  # wait the batch of configs to terminate
 
         self.process_results()
 

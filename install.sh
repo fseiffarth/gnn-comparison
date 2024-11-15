@@ -28,7 +28,7 @@ TORCH_GEOMETRIC_VERSION=2.3.1
 # set CUDA variable (defaults to cpu if no argument is provided to the script)
 # available options for pytorch 2.0.1 are cpu, and cu117
 # available options for pytorch 1.4.0 are cpu, cu92, cu100, and cu101
-CUDA_VERSION=${2:-"cpu"}
+CUDA_VERSION=${2:-"cu118"}
 
 echo "Using Python version: ${PYTHON_VERSION}"
 echo "Installing PyTorch ${PYTORCH_VERSION} with CUDA ${CUDA_VERSION} support"
@@ -36,8 +36,8 @@ echo "Torch Geometric version: ${TORCH_GEOMETRIC_VERSION}"
 
 # create virtual environment and activate it
 $PYTHON_VERSION -m pip install --user virtualenv
-$PYTHON_VERSION -m venv ~/.venv/gnn-comparison
-source ~/.venv/gnn-comparison/bin/activate
+$PYTHON_VERSION -m venv /home/mlai21/share/envs/gnn-comparison
+source /home/mlai21/share/envs/gnn-comparison/bin/activate
 
 pip install build wheel
 

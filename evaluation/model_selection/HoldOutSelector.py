@@ -18,6 +18,8 @@ import concurrent.futures
 import json
 import os
 
+import joblib
+
 from log.Logger import Logger
 
 
@@ -62,6 +64,22 @@ class HoldOutSelector:
 
         return best_config
 
+    def parallel_process_model_selection_helper(self, exp_path, dataset_getter, experiment_class, config, config_id,
+                                                other=None):
+        HOLDOUT_MS_FOLDER = os.path.join(exp_path, 'HOLDOUT_MS')
+        # Create a separate folder for each experiment
+        exp_config_name = os.path.join(HOLDOUT_MS_FOLDER, self._CONFIG_BASE + str(config_id + 1))
+        if not os.path.exists(exp_config_name):
+            os.makedirs(exp_config_name)
+
+        json_config = os.path.join(exp_config_name, self._CONFIG_FILENAME)
+        if not os.path.exists(json_config):
+                self._model_selection_helper(dataset_getter, experiment_class, config, exp_config_name,
+                                             other)
+        else:
+            # Do not recompute experiments for this fold.
+            print(f"Config {json_config} already present! Shutting down to prevent loss of previous experiments")
+
     def model_selection(self, dataset_getter, experiment_class, exp_path, model_configs, debug=False, other=None):
         """
         :param experiment_class: the kind of experiment used
@@ -73,35 +91,14 @@ class HoldOutSelector:
         if not os.path.exists(HOLDOUT_MS_FOLDER):
             os.makedirs(HOLDOUT_MS_FOLDER)
 
-        config_id = 0
+        #pool = concurrent.futures.ProcessPoolExecutor(max_workers=self.max_processes)
 
-        pool = concurrent.futures.ProcessPoolExecutor(max_workers=self.max_processes)
+        joblib.Parallel(n_jobs=self.max_processes)(joblib.delayed(self.parallel_process_model_selection_helper)(exp_path,
+            dataset_getter, experiment_class, config, config_id, other) for config_id, config in enumerate(model_configs))
 
-        for config in model_configs:  # generate_grid(model_configs):
+        #pool.shutdown()  # wait the batch of configs to terminate
 
-            # Create a separate folder for each experiment
-            exp_config_name = os.path.join(HOLDOUT_MS_FOLDER, self._CONFIG_BASE + str(config_id + 1))
-            if not os.path.exists(exp_config_name):
-                os.makedirs(exp_config_name)
-
-            json_config = os.path.join(exp_config_name, self._CONFIG_FILENAME)
-            if not os.path.exists(json_config):
-                if not debug:
-                    pool.submit(self._model_selection_helper, dataset_getter, experiment_class, config,
-                                exp_config_name, other)
-                else:  # DEBUG
-                    self._model_selection_helper(dataset_getter, experiment_class, config, exp_config_name,
-                                                other)
-            else:
-                # Do not recompute experiments for this fold.
-                print(f"Config {json_config} already present! Shutting down to prevent loss of previous experiments")
-                continue
-
-            config_id += 1
-
-        pool.shutdown()  # wait the batch of configs to terminate
-
-        best_config = self.process_results(HOLDOUT_MS_FOLDER, config_id)
+        best_config = self.process_results(HOLDOUT_MS_FOLDER, len(model_configs))
 
         with open(os.path.join(HOLDOUT_MS_FOLDER, self.WINNER_CONFIG_FILENAME), 'w') as fp:
             json.dump(best_config, fp)

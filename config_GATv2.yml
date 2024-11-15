@@ -15,21 +15,19 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 model:
-  - DGCNN
+  - GATv2
 device:
   - cpu
 batch_size:
-  - 50
-dense_dim:
-  - 128
-k:
-  - 0.9
-  - 0.6
+  - 64
 learning_rate:
   - 0.0001
-  - 0.00001
+  - 0.001
+  - 0.01
+l2:
+  - 0.
 classifier_epochs:
-  - 10
+  - 1000
 optimizer:
   - Adam
 scheduler:
@@ -51,12 +49,19 @@ early_stopper:
       use_loss: True
 shuffle:
   - True
-l2:
-  - 0.
-embedding_dim:
+dim_embedding:
   - 32
   - 64
 num_layers:
-  - 2
   - 3
+  - 5
+aggregation:
+  - mean
+
+dropout:
+  - 0.5
+  - 0.
+
+heads:
+  - 1
   - 4

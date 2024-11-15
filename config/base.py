@@ -26,6 +26,9 @@ from models.graph_classifiers.DiffPool import DiffPool
 from models.graph_classifiers.ECC import ECC
 from models.graph_classifiers.GIN import GIN
 from models.graph_classifiers.GraphSAGE import GraphSAGE
+from models.graph_classifiers.GAT import GAT
+from models.graph_classifiers.GATv2 import GATv2
+from models.graph_classifiers.GCN import GCN
 from models.graph_classifiers.MolecularFingerprint import MolecularFingerprint
 from models.modules import (BinaryClassificationLoss,
                             MulticlassClassificationLoss,
@@ -80,6 +83,9 @@ class Config:
         "MolecularFingerprint": MolecularFingerprint,
         "DeepMultisets": DeepMultisets,
         "GraphSAGE": GraphSAGE,
+        "GAT": GAT,
+        "GATv2": GATv2,
+        "GCN": GCN
     }
 
     losses = {

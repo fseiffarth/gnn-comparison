@@ -17,10 +17,10 @@
 import torch
 import torch.nn.functional as F
 from torch import nn
-from torch_geometric.nn import GATConv, global_max_pool
+from torch_geometric.nn import GATConv, global_max_pool, GATv2Conv
 
 
-class GAT(nn.Module):
+class GATv2(nn.Module):
     def __init__(self, dim_features, dim_target, config):
         super().__init__()
 
@@ -31,18 +31,19 @@ class GAT(nn.Module):
         self.dropout = config['dropout']
 
         if self.aggregation == 'max':
-            self.fc_max = nn.Linear(self.heads*dim_embedding, self.heads*dim_embedding)
+            self.fc_max = nn.Linear(self.heads * dim_embedding, self.heads * dim_embedding)
 
         self.layers = nn.ModuleList([])
         for i in range(num_layers):
             dim_input = dim_features if i == 0 else dim_embedding
 
             # Overwrite aggregation method (default is set to mean
-            conv = GATConv(in_channels=dim_input, out_channels=dim_embedding, heads=self.heads, aggr=self.aggregation, dropout=self.dropout)
+            conv = GATv2Conv(in_channels=dim_input, out_channels=dim_embedding, heads=self.heads, aggr=self.aggregation,
+                           dropout=self.dropout)
             self.layers.append(conv)
             # if heads > 1 add a linear layer to reduce the dimension
             if self.heads > 1:
-                self.layers.append(nn.Linear(self.heads*dim_embedding, dim_embedding))
+                self.layers.append(nn.Linear(self.heads * dim_embedding, dim_embedding))
 
         # For graph classification
         self.fc1 = nn.Linear(dim_embedding, dim_embedding)
@@ -52,11 +53,11 @@ class GAT(nn.Module):
         x, edge_index, batch = data.x, data.edge_index, data.batch
         for i, layer in enumerate(self.layers):
             if self.heads > 1:
-                x = self.layers[2*i](x, edge_index)
+                x = self.layers[2 * i](x, edge_index)
                 if self.aggregation == 'max':
                     x = torch.relu(self.fc_max(x))
-                x = self.layers[2*i+1](x)
-                if i == len(self.layers)//2 - 1:
+                x = self.layers[2 * i + 1](x)
+                if i == len(self.layers) // 2 - 1:
                     break
             else:
                 x = layer(x, edge_index)

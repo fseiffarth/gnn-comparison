@@ -119,6 +119,11 @@ class NetWrapper:
 
         time_per_epoch = []
 
+        if logger is not None:
+            msg = 'Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters()))
+            logger.log(msg)
+            print(msg)
+
         for epoch in range(1, max_epochs+1):
 
             start = time.time()
