@@ -48,6 +48,8 @@ if __name__ == "__main__":
         config_files = ['config_GCN.yml', 'config_GIN.yml', 'config_GraphSAGE.yml', 'config_GAT.yml', 'config_GATv2.yml']
     if args.config_file == 'gat':
         config_files = ['config_GAT.yml', 'config_GATv2.yml']
+    if args.config_file == 'not_gat':
+        config_files = ['config_GCN.yml', 'config_GIN.yml', 'config_GraphSAGE.yml']
     if args.config_file == 'GINSAGE':
         config_files = ['config_GIN.yml', 'config_GraphSAGE.yml']
     if args.dataset_name != 'none':

@@ -29,7 +29,7 @@ learning_rate:
   - 0.0001
   - 0.00001
 classifier_epochs:
-  - 10
+  - 1000
 optimizer:
   - Adam
 scheduler:
