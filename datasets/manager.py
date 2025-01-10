@@ -275,6 +275,16 @@ class BenchmarkDatasetManager(GraphDatasetManager):
             if node_attrs[0] is not None:
                 graphs_data['node_attrs'][i] = node_attrs
             id_counter += graph.number_of_nodes()
+
+        # the minimum over all node labels should be 1 (if it is not 1 we shift the labels)
+        min_node_label_set = min(node_label_set)
+        if min(node_label_set) != 1:
+            for x in graphs_data['node_labels'].values():
+                for i in range(len(x)):
+                    x[i] -= min_node_label_set - 1
+            node_label_set = set([x - min_node_label_set + 1 for x in node_label_set])
+
+
         # targets is a list of the labels (integer)
         targets = labels
 

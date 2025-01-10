@@ -54,6 +54,8 @@ if __name__ == "__main__":
         datasets = [args.dataset_name]
     if args.dataset_name == 'all':
         datasets = ['Mutagenicity', 'NCI109', 'DHFR', 'NCI1', 'IMDB-BINARY', 'IMDB-MULTI']
+    if args.dataset_name == 'imdb_features':
+        datasets = ['IMDB-BINARYFeatures', 'IMDB-MULTIFeatures']
     if args.dataset_name == 'features':
         datasets = ['DHFRFeatures', 'IMDB-BINARYFeatures', 'IMDB-MULTIFeatures', 'MutagenicityFeatures', 'NCI1Features', 'NCI109Features']
     if args.dataset_name == 'all_experiments':
