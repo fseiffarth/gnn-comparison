@@ -33,7 +33,7 @@ class GCN(nn.Module):
         if self.aggregation == 'max':
             self.fc_max = nn.Linear(dim_embedding, dim_embedding)
 
-        self.gcn_network = torch_geometric.nn.models.GCN(in_channels=dim_features, hidden_channels=dim_features, out_channels=dim_embedding, num_layers=num_layers, dropout=self.dropout)
+        self.gcn_network = torch_geometric.nn.models.GCN(in_channels=dim_features, hidden_channels=dim_embedding, out_channels=dim_embedding, num_layers=num_layers, dropout=self.dropout)
 
         # For graph classification
         self.fc1 = nn.Linear(dim_embedding, dim_embedding)

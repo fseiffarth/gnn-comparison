@@ -40,12 +40,12 @@ early_stopper:
   -
     class: Patience
     args:
-      patience: 500
+      patience: 100
       use_loss: False
   -
     class: Patience
     args:
-      patience: 500
+      patience: 100
       use_loss: True
 shuffle:
   - True
