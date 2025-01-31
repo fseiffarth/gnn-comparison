@@ -1,8 +1,7 @@
 # Contributions to the original repository
 
 This repository is a fork of [diningphil/gnn-comparison](https://github.com/diningphil/gnn-comparison).
-The code is used for the experiments in the paper "Rule Based Learning with Dynamic (Graph) Neural Networks"
-and contains the following contributions:
+The code contains the following contributions:
 
 - Additional real-world datasets: DHFR, NCI109, Mutagenicity
 - Additional featured datasets: DHFRFeatures, IMDB-BINARY-Features, IMDB-MULTI-Features, NCI109Features, MutagenicityFeatures
