@@ -19,6 +19,7 @@ model:
 device:
   - cpu
 batch_size:
+  - 32
   - 64
 learning_rate:
   - 0.0001
@@ -40,12 +41,12 @@ early_stopper:
   -
     class: Patience
     args:
-      patience: 100
+      patience: 500
       use_loss: False
   -
     class: Patience
     args:
-      patience: 100
+      patience: 500
       use_loss: True
 shuffle:
   - True
@@ -57,7 +58,3 @@ num_layers:
   - 5
 aggregation:
   - mean
-
-dropout:
-  - 0.5
-  - 0.

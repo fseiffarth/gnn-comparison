@@ -28,12 +28,18 @@ class GCN(nn.Module):
         num_layers = config['num_layers']
         dim_embedding = config['dim_embedding']
         self.aggregation = config['aggregation']  # can be mean or max
-        self.dropout = config['dropout']
 
         if self.aggregation == 'max':
             self.fc_max = nn.Linear(dim_embedding, dim_embedding)
 
-        self.gcn_network = torch_geometric.nn.models.GCN(in_channels=dim_features, hidden_channels=dim_embedding, out_channels=dim_embedding, num_layers=num_layers, dropout=self.dropout)
+        self.layers = nn.ModuleList([])
+        for i in range(num_layers):
+            dim_input = dim_features if i == 0 else dim_embedding
+
+            # Overwrite aggregation method (default is set to mean
+            conv = GCNConv(in_channels=dim_input, out_channels=dim_embedding, aggr=self.aggregation)
+
+            self.layers.append(conv)
 
         # For graph classification
         self.fc1 = nn.Linear(dim_embedding, dim_embedding)
@@ -41,8 +47,11 @@ class GCN(nn.Module):
 
     def forward(self, data):
         x, edge_index, batch = data.x, data.edge_index, data.batch
-        x = self.gcn_network(x, edge_index)
-        x = global_mean_pool(x, batch)
+        for i, layer in enumerate(self.layers):
+            x = layer(x, edge_index)
+            if self.aggregation == 'max':
+                x = torch.relu(self.fc_max(x))
+        x = global_max_pool(x, batch)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
