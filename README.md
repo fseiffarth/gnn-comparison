@@ -1,3 +1,7 @@
+This is a fork of the below repository with additional datasets and features.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for more information on the changes.
+
+
 # A Fair Comparison of Graph Neural Networks for Graph Classification (ICLR 2020)
 
 ## Summary
