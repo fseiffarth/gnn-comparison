@@ -5,37 +5,24 @@ The code contains the following contributions:
 
 - Additional real-world datasets: DHFR, NCI109, Mutagenicity
 - Additional featured datasets: DHFRFeatures, IMDB-BINARY-Features, IMDB-MULTI-Features, NCI109Features, MutagenicityFeatures
-- Additional synthetic datasets: CSL, EvenOddRings2_16, EvenOddRingsCount, LongRings100, Snowflakes
+- Additional synthetic datasets: CSL, LongRings100 (RingTransfer1), EvenOddRingsCount (RingTransfer2), EvenOddRings2_16 (RingTransfer3), Snowflakes
 
-## Paper Results
+## Reproduce the Results
 To reproduce the part of experiments in the paper based on the evaluation proposed in the original repository follow the instructions below.
-1. Create a folder name `RESULTS` in the root directory of the repository
-2. Unzip the `DATA.zip` folder and run the following commands for the different models
+1. Clone this repository
+2. Install the environment by running the following commands:
+```bash
+   conda env create -f environment.yml
+   conda activate gnn-comparison
+```
+3. Unzip the `DATA.zip` folder and run the following commands for the different models
 
-The first command is for all real-world datasets without the additional features,
-the second command is for all real-world datasets with the additional features,
-and the third command is for all synthetic datasets.
-
-> ### DGCNN
-> ```python Launch_Experiments.py --config-file config_DGCNN.yml --dataset-name all --result-folder RESULTS --inner-processes 3 --outer-processes 10```
-> 
-> ```python Launch_Experiments.py --config-file config_DGCNN.yml --dataset-name features --result-folder RESULTS --inner-processes 3 --outer-processes 10```
->
-> ```python Launch_Experiments.py --config-file config_DGCNN.yml --dataset-name synthetic --result-folder RESULTS --inner-processes 3 --outer-processes 10```
-
-> ### GraphSAGE
-> ```python Launch_Experiments.py --config-file config_GraphSAGE.yml --dataset-name all --result-folder RESULTS --inner-processes 3 --outer-processes 10```
->
->```python Launch_Experiments.py --config-file config_GraphSAGE.yml --dataset-name features --result-folder RESULTS --inner-processes 3 --outer-processes 10```
->
->```python Launch_Experiments.py --config-file config_GraphSAGE.yml --dataset-name synthetic --result-folder RESULTS --inner-processes 3 --outer-processes 10```
-
-> ### GIN
-> ```python Launch_Experiments.py --config-file config_GIN.yml --dataset-name all --result-folder RESULTS --inner-processes 3 --outer-processes 10```
->
->```python Launch_Experiments.py --config-file config_GIN.yml --dataset-name features --result-folder RESULTS --inner-processes 3 --outer-processes 10```
->
->```python Launch_Experiments.py --config-file config_GIN.yml --dataset-name synthetic --result-folder RESULTS --inner-processes 3 --outer-processes 10```
+### Run experiments
+Given dataset DATA and algorith ALGO run the following command:
+```bash
+export OMP_NUM_THREADS=1
+python Launch_Experiments.py --config-file config_ALGO.yml --dataset-name DATA --result-folder RESULTS --inner-processes 1 --outer-processes 10
+```
 
 
 
